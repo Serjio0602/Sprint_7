@@ -15,13 +15,13 @@ import java.util.Collection;
 import java.util.List;
 
 @RunWith(Parameterized.class)
-public class OrderCreatingTest extends BaseApiTest {
+public class OrderCreatingParamTest extends BaseApiTest {
 
     private List<String> colors;
     private Response response;
     private int track;
 
-    public OrderCreatingTest(List<String> colors) {
+    public OrderCreatingParamTest(List<String> colors) {
         this.colors = colors;
     }
 
