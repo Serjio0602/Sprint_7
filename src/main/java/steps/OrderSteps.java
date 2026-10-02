@@ -32,4 +32,15 @@ public class OrderSteps {
                 .then()
                 .extract().response();
     }
+
+    @Step("Получение списка заказов")
+    public static Response getOrderList() {
+        return given()
+                .log().all()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/v1/orders")
+                .then()
+                .extract().response();
+    }
 }
