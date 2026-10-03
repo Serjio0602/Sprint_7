@@ -1,6 +1,7 @@
 package tests;
 
 import io.qameta.allure.junit4.DisplayName;
+import io.restassured.response.Response;
 import model.Courier;
 import org.junit.After;
 import org.junit.Test;
@@ -12,25 +13,20 @@ import static steps.CourierSteps.*;
 
 public class CourierCreatingTest extends BaseApiTest {
 
-    private int courierId;
+    private Courier courier;
 
     @Test
     @DisplayName("Успешное создание курьера")
     public void testCreateCourier() {
 
         String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
+        courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
         createCourier(courier)
                 .then()
                 .log().all()
                 .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
-        courierId = loginCourier(courier)
-                        .then()
-                        .log().all()
-                        .statusCode(SC_OK)
-                        .extract().path("id");
     }
 
     @Test
@@ -38,18 +34,13 @@ public class CourierCreatingTest extends BaseApiTest {
     public void testCreateCourierWithoutFirstName() {
 
         String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, COURIER_PASSWORD, null);
+        courier = new Courier(courierLogin, COURIER_PASSWORD, null);
         createCourier(courier)
                 .then()
                 .log().all()
                 .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
-        courierId = loginCourier(courier)
-                .then()
-                .log().all()
-                .statusCode(SC_OK)
-                .extract().path("id");
     }
 
     @Test
@@ -57,7 +48,7 @@ public class CourierCreatingTest extends BaseApiTest {
     public void testImpossibleToCreateSameCourier() {
 
         String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
+        courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
         createCourier(courier)
                 .then()
                 .log().all()
@@ -70,18 +61,13 @@ public class CourierCreatingTest extends BaseApiTest {
                 .statusCode(SC_CONFLICT)
                 .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
 
-        courierId = loginCourier(courier)
-                .then()
-                .log().all()
-                .statusCode(SC_OK)
-                .extract().path("id");
     }
 
     @Test
     @DisplayName("Невозможно создать курьера без логина")
     public void testCreateCourierWithoutLogin() {
 
-        Courier courier = new Courier(null, COURIER_PASSWORD, COURIER_FIRST_NAME);
+        courier = new Courier(null, COURIER_PASSWORD, COURIER_FIRST_NAME);
         createCourier(courier)
                 .then()
                 .log().all()
@@ -94,7 +80,7 @@ public class CourierCreatingTest extends BaseApiTest {
     public void testCreateCourierWithoutPassword() {
 
         String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, null, COURIER_FIRST_NAME);
+        courier = new Courier(courierLogin, null, COURIER_FIRST_NAME);
         createCourier(courier)
                 .then()
                 .log().all()
@@ -104,10 +90,16 @@ public class CourierCreatingTest extends BaseApiTest {
 
     @After
     public  void cleanUp() {
-        if (courierId != 0) {
-            deleteCourier(courierId)
-                .then()
-                .statusCode(SC_OK);
+        if (courier != null && courier.getLogin() != null && courier.getPassword() != null) {
+            Response loginResponse = loginCourier(courier);
+
+            if (loginResponse.statusCode() == SC_OK) {
+                int courierId = loginResponse.path("id");
+                deleteCourier(courierId)
+                        .then()
+                        .statusCode(SC_OK);
+            }
+
         }
     }
 }
