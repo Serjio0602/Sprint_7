@@ -7,6 +7,7 @@ import steps.OrderSteps;
 
 import java.util.List;
 
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -18,7 +19,7 @@ public class OrderListTest extends BaseApiTest {
 
         Response response = OrderSteps.getOrderList();
 
-        response.then().statusCode(200);
+        response.then().statusCode(SC_OK);
         List<Object> orders = response.path("orders");
         assertThat("Массив не должен быть null", orders, is(notNullValue()));
     }

@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static data.CourierData.*;
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.equalTo;
 import static steps.CourierSteps.*;
 
@@ -22,13 +23,13 @@ public class CourierCreatingTest extends BaseApiTest {
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
         courierId = loginCourier(courier)
                         .then()
                         .log().all()
-                        .statusCode(200)
+                        .statusCode(SC_OK)
                         .extract().path("id");
     }
 
@@ -41,13 +42,13 @@ public class CourierCreatingTest extends BaseApiTest {
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
         courierId = loginCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .extract().path("id");
     }
 
@@ -60,19 +61,19 @@ public class CourierCreatingTest extends BaseApiTest {
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(409)
+                .statusCode(SC_CONFLICT)
                 .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
 
         courierId = loginCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .extract().path("id");
     }
 
@@ -84,7 +85,7 @@ public class CourierCreatingTest extends BaseApiTest {
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body("message", equalTo("Недостаточно данных для создания учетной записи"));
     }
 
@@ -97,7 +98,7 @@ public class CourierCreatingTest extends BaseApiTest {
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body("message", equalTo("Недостаточно данных для создания учетной записи"));
     }
 
@@ -106,7 +107,7 @@ public class CourierCreatingTest extends BaseApiTest {
         if (courierId != 0) {
             deleteCourier(courierId)
                 .then()
-                .statusCode(200);
+                .statusCode(SC_OK);
         }
     }
 }

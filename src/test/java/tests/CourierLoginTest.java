@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static data.CourierData.*;
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.equalTo;
 import static steps.CourierSteps.*;
 
@@ -22,18 +23,18 @@ public class CourierLoginTest extends BaseApiTest {
         createCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
         courierId = loginCourier(courier)
                 .then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .extract().path("id");
 
         loginCourier(courier)
                 .then()
                 .log().all()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("id", equalTo(courierId));
     }
 
@@ -45,7 +46,7 @@ public class CourierLoginTest extends BaseApiTest {
         loginCourier(courierWithoutLogin)
                 .then()
                 .log().all()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body("message", equalTo("Недостаточно данных для входа"));
     }
 
@@ -58,7 +59,7 @@ public class CourierLoginTest extends BaseApiTest {
         loginCourier(courierWithoutPassword)
                 .then()
                 .log().all()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body("message", equalTo("Недостаточно данных для входа"));
     }
 
@@ -70,18 +71,18 @@ public class CourierLoginTest extends BaseApiTest {
         Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
         createCourier(courier)
                 .then()
-                .statusCode(201);
+                .statusCode(SC_CREATED);
 
         courierId = loginCourier(courier)
                 .then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .extract().path("id");
 
         Courier courierWithWrongLogin = new Courier("Wrong_" + courierLogin, COURIER_PASSWORD);
         loginCourier(courierWithWrongLogin)
                 .then()
                 .log().all()
-                .statusCode(404)
+                .statusCode(SC_NOT_FOUND)
                 .body("message", equalTo("Учетная запись не найдена"));
     }
 
@@ -93,18 +94,18 @@ public class CourierLoginTest extends BaseApiTest {
         Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
         createCourier(courier)
                 .then()
-                .statusCode(201);
+                .statusCode(SC_CREATED);
 
         courierId = loginCourier(courier)
                 .then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .extract().path("id");
 
         Courier courierWithWrongPassword = new Courier(courierLogin, COURIER_PASSWORD + System.currentTimeMillis());
         loginCourier(courierWithWrongPassword)
                 .then()
                 .log().all()
-                .statusCode(404)
+                .statusCode(SC_NOT_FOUND)
                 .body("message", equalTo("Учетная запись не найдена"));
     }
 
@@ -113,7 +114,7 @@ public class CourierLoginTest extends BaseApiTest {
         if (courierId != 0) {
             deleteCourier(courierId)
                     .then()
-                    .statusCode(200);
+                    .statusCode(SC_OK);
         }
     }
 }

@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static org.apache.http.HttpStatus.SC_CREATED;
+
 @RunWith(Parameterized.class)
 public class OrderCreatingParamTest extends BaseApiTest {
 
@@ -44,7 +46,7 @@ public class OrderCreatingParamTest extends BaseApiTest {
 
         response.then()
                 .log().all()
-                .statusCode(201);
+                .statusCode(SC_CREATED);
 
         track = response.path("track");
     }
