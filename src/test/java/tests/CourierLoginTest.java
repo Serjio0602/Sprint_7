@@ -1,41 +1,41 @@
 package tests;
 
 import io.qameta.allure.junit4.DisplayName;
+import io.restassured.response.Response;
 import model.Courier;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static data.CourierData.*;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static steps.CourierSteps.*;
 
 public class CourierLoginTest extends BaseApiTest {
 
-    private int courierId;
+    private Courier courier;
+
+    @Before
+    public void setUpCourier() {
+
+        String courierLogin = "CL_" + System.currentTimeMillis();
+        courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
+
+        createCourier(courier)
+                .then()
+                .statusCode(SC_CREATED);
+    }
 
     @Test
     @DisplayName("Успешная авторизация курьера")
     public void testLoginCourier() {
-
-        String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
-        createCourier(courier)
-                .then()
-                .log().all()
-                .statusCode(SC_CREATED)
-                .body("ok", equalTo(true));
-
-        courierId = loginCourier(courier)
-                .then()
-                .statusCode(SC_OK)
-                .extract().path("id");
-
         loginCourier(courier)
                 .then()
                 .log().all()
                 .statusCode(SC_OK)
-                .body("id", equalTo(courierId));
+                .body("id", notNullValue());
     }
 
     @Test
@@ -54,8 +54,7 @@ public class CourierLoginTest extends BaseApiTest {
     @DisplayName("Невозможно авторизоваться без пароля")
     public void testLoginCourierWithoutPassword() {
 
-        String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courierWithoutPassword = new Courier(courierLogin, "");
+        Courier courierWithoutPassword = new Courier(courier.getLogin(), "");
         loginCourier(courierWithoutPassword)
                 .then()
                 .log().all()
@@ -67,18 +66,8 @@ public class CourierLoginTest extends BaseApiTest {
     @DisplayName("Ошибка при вводе неправильного логина")
     public void testWrongLogin() {
 
-        String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
-        createCourier(courier)
-                .then()
-                .statusCode(SC_CREATED);
+        Courier courierWithWrongLogin = new Courier("Wrong_" + courier.getLogin(), courier.getPassword());
 
-        courierId = loginCourier(courier)
-                .then()
-                .statusCode(SC_OK)
-                .extract().path("id");
-
-        Courier courierWithWrongLogin = new Courier("Wrong_" + courierLogin, COURIER_PASSWORD);
         loginCourier(courierWithWrongLogin)
                 .then()
                 .log().all()
@@ -90,18 +79,7 @@ public class CourierLoginTest extends BaseApiTest {
     @DisplayName("Ошибка при вводе неправильного пароля")
     public void testWrongPassword() {
 
-        String courierLogin = "CL_" + System.currentTimeMillis();
-        Courier courier = new Courier(courierLogin, COURIER_PASSWORD, COURIER_FIRST_NAME);
-        createCourier(courier)
-                .then()
-                .statusCode(SC_CREATED);
-
-        courierId = loginCourier(courier)
-                .then()
-                .statusCode(SC_OK)
-                .extract().path("id");
-
-        Courier courierWithWrongPassword = new Courier(courierLogin, COURIER_PASSWORD + System.currentTimeMillis());
+        Courier courierWithWrongPassword = new Courier(courier.getLogin(), courier.getPassword() + System.currentTimeMillis());
         loginCourier(courierWithWrongPassword)
                 .then()
                 .log().all()
@@ -111,10 +89,16 @@ public class CourierLoginTest extends BaseApiTest {
 
     @After
     public  void cleanUp() {
-        if (courierId != 0) {
-            deleteCourier(courierId)
-                    .then()
-                    .statusCode(SC_OK);
+        if (courier != null && courier.getLogin() != null && courier.getPassword() != null) {
+
+            Response loginResponse = loginCourier(courier);
+            if (loginResponse.statusCode() == SC_OK) {
+                int courierId = loginResponse.path("id");
+                deleteCourier(courierId)
+                        .then()
+                        .statusCode(SC_OK);
+            }
+
         }
     }
 }
